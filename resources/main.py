@@ -301,7 +301,6 @@ class Main:
             'SHOW_UTILITIES_VLAUNCHERS',
             'SHOW_GLOBALREPORTS_VLAUNCHERS',
             'SHOW_COLLECTIONS',
-            'SHOW_COLLECTIONS_GENRE',
             'SHOW_COLLECTION_ROMS',
             'SHOW_LAUNCHERS',
             'SHOW_ROMS',
@@ -354,9 +353,7 @@ class Main:
             self._gui_render_GlobalReports_vlaunchers()
 
         elif command == 'SHOW_COLLECTIONS':
-            self._command_render_collections(None)
-        elif command == 'SHOW_COLLECTIONS_GENRE':
-            self._command_render_collections(args['genre'][0])
+            self._command_render_collections(args['genre'][0] if 'genre' in args else None)
         elif command == 'SHOW_COLLECTION_ROMS':
             self._command_render_collection_ROMs(args['catID'][0], args['launID'][0])
         elif command == 'SHOW_LAUNCHERS':
