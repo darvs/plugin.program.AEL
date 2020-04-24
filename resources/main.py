@@ -301,6 +301,7 @@ class Main:
             'SHOW_UTILITIES_VLAUNCHERS',
             'SHOW_GLOBALREPORTS_VLAUNCHERS',
             'SHOW_COLLECTIONS',
+            'SHOW_COLLECTIONS_GENRE',
             'SHOW_COLLECTION_ROMS',
             'SHOW_LAUNCHERS',
             'SHOW_ROMS',
@@ -353,7 +354,9 @@ class Main:
             self._gui_render_GlobalReports_vlaunchers()
 
         elif command == 'SHOW_COLLECTIONS':
-            self._command_render_collections()
+            self._command_render_collections(None)
+        elif command == 'SHOW_COLLECTIONS_GENRE':
+            self._command_render_collections(args['genre'][0])
         elif command == 'SHOW_COLLECTION_ROMS':
             self._command_render_collection_ROMs(args['catID'][0], args['launID'][0])
         elif command == 'SHOW_LAUNCHERS':
@@ -6084,7 +6087,7 @@ class Main:
     #
     # Renders a listview with all collections
     #
-    def _command_render_collections(self):
+    def _command_render_collections(self, genre):
         # >> Kodi sorting method
         xbmcplugin.addSortMethod(handle = self.addon_handle, sortMethod = xbmcplugin.SORT_METHOD_LABEL)
         xbmcplugin.addSortMethod(handle = self.addon_handle, sortMethod = xbmcplugin.SORT_METHOD_UNSORTED)
@@ -6101,37 +6104,38 @@ class Main:
 
         # --- Render ROM Collections as Categories ---
         for collection_id in collections:
-            # --- Create listitem ---
             collection = collections[collection_id]
-            collection_name = collection['m_name']
-            listitem = xbmcgui.ListItem(collection_name)
-            listitem.setInfo('video', {'title'   : collection['m_name'],    'genre'   : collection['m_genre'],
-                                       'plot'    : collection['m_plot'],    'rating'  : collection['m_rating'],
-                                       'trailer' : collection['s_trailer'], 'overlay' : 4 })
-            icon_path      = asset_get_default_asset_Category(collection, 'default_icon', 'DefaultFolder.png')
-            fanart_path    = asset_get_default_asset_Category(collection, 'default_fanart')
-            banner_path    = asset_get_default_asset_Category(collection, 'default_banner')
-            poster_path    = asset_get_default_asset_Category(collection, 'default_poster')
-            clearlogo_path = asset_get_default_asset_Category(collection, 'default_clearlogo')
-            listitem.setArt({'icon'   : icon_path,   'fanart' : fanart_path,
-                             'banner' : banner_path, 'poster' : poster_path, 'clearlogo' : clearlogo_path})
+            if genre is None or collection['m_genre'] == genre:
+                # --- Create listitem ---
+                collection_name = collection['m_name']
+                listitem = xbmcgui.ListItem(collection_name)
+                listitem.setInfo('video', {'title'   : collection['m_name'],    'genre'   : collection['m_genre'],
+                                           'plot'    : collection['m_plot'],    'rating'  : collection['m_rating'],
+                                           'trailer' : collection['s_trailer'], 'overlay' : 4 })
+                icon_path      = asset_get_default_asset_Category(collection, 'default_icon', 'DefaultFolder.png')
+                fanart_path    = asset_get_default_asset_Category(collection, 'default_fanart')
+                banner_path    = asset_get_default_asset_Category(collection, 'default_banner')
+                poster_path    = asset_get_default_asset_Category(collection, 'default_poster')
+                clearlogo_path = asset_get_default_asset_Category(collection, 'default_clearlogo')
+                listitem.setArt({'icon'   : icon_path,   'fanart' : fanart_path,
+                                 'banner' : banner_path, 'poster' : poster_path, 'clearlogo' : clearlogo_path})
 
-            # --- Create context menu ---
-            commands = []
-            commands.append(('View ROM Collection data', self._misc_url_RunPlugin('VIEW', VCATEGORY_COLLECTIONS_ID, collection_id)))
-            commands.append(('Export Collection',        self._misc_url_RunPlugin('EXPORT_COLLECTION', VCATEGORY_COLLECTIONS_ID, collection_id)))
-            commands.append(('Edit Collection',          self._misc_url_RunPlugin('EDIT_COLLECTION', VCATEGORY_COLLECTIONS_ID, collection_id)))
-            commands.append(('Delete Collection',        self._misc_url_RunPlugin('DELETE_COLLECTION', VCATEGORY_COLLECTIONS_ID, collection_id), ))
-            commands.append(('Create New Collection',    self._misc_url_RunPlugin('ADD_COLLECTION')))
-            commands.append(('Import Collection',        self._misc_url_RunPlugin('IMPORT_COLLECTION')))
-            commands.append(('Kodi File Manager', 'ActivateWindow(filemanager)'))
-            commands.append(('AEL addon settings', 'Addon.OpenSettings({0})'.format(__addon_id__)))
-            if (xbmc.getCondVisibility("!Skin.HasSetting(KioskMode.Enabled)")):
-                listitem.addContextMenuItems(commands, replaceItems = True)
+                # --- Create context menu ---
+                commands = []
+                commands.append(('View ROM Collection data', self._misc_url_RunPlugin('VIEW', VCATEGORY_COLLECTIONS_ID, collection_id)))
+                commands.append(('Export Collection',        self._misc_url_RunPlugin('EXPORT_COLLECTION', VCATEGORY_COLLECTIONS_ID, collection_id)))
+                commands.append(('Edit Collection',          self._misc_url_RunPlugin('EDIT_COLLECTION', VCATEGORY_COLLECTIONS_ID, collection_id)))
+                commands.append(('Delete Collection',        self._misc_url_RunPlugin('DELETE_COLLECTION', VCATEGORY_COLLECTIONS_ID, collection_id), ))
+                commands.append(('Create New Collection',    self._misc_url_RunPlugin('ADD_COLLECTION')))
+                commands.append(('Import Collection',        self._misc_url_RunPlugin('IMPORT_COLLECTION')))
+                commands.append(('Kodi File Manager', 'ActivateWindow(filemanager)'))
+                commands.append(('AEL addon settings', 'Addon.OpenSettings({0})'.format(__addon_id__)))
+                if (xbmc.getCondVisibility("!Skin.HasSetting(KioskMode.Enabled)")):
+                    listitem.addContextMenuItems(commands, replaceItems = True)
 
-            # >> Use ROMs renderer to display collection ROMs
-            url_str = self._misc_url('SHOW_COLLECTION_ROMS', VCATEGORY_COLLECTIONS_ID, collection_id)
-            xbmcplugin.addDirectoryItem(handle = self.addon_handle, url = url_str, listitem = listitem, isFolder = True)
+                # >> Use ROMs renderer to display collection ROMs
+                url_str = self._misc_url('SHOW_COLLECTION_ROMS', VCATEGORY_COLLECTIONS_ID, collection_id)
+                xbmcplugin.addDirectoryItem(handle = self.addon_handle, url = url_str, listitem = listitem, isFolder = True)
         xbmcplugin.endOfDirectory(handle = self.addon_handle, succeeded = True, cacheToDisc = False)
 
     def _command_render_collection_ROMs(self, categoryID, launcherID):
